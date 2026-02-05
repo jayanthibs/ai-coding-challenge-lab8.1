@@ -1,407 +1,465 @@
-// Flashcards App with Deck Management
-class FlashcardsApp {
-  constructor() {
-    this.activeDeckId = 1;
-    this.currentCardIndex = 0;
-    this.decks = [
-      {
-        id: 1,
-        name: "Spanish Vocabulary",
-        cards: [
-          { id: 1, front: "Hola", back: "Hello" },
-          { id: 2, front: "Adiós", back: "Goodbye" },
-          { id: 3, front: "Gracias", back: "Thank you" },
-          { id: 4, front: "Por favor", back: "Please" },
-          { id: 5, front: "Sí", back: "Yes" },
-          { id: 6, front: "No", back: "No" },
-          { id: 7, front: "Agua", back: "Water" },
-          { id: 8, front: "Gato", back: "Cat" },
-          { id: 9, front: "Perro", back: "Dog" },
-          { id: 10, front: "Casa", back: "House" },
-          { id: 11, front: "Libro", back: "Book" },
-          { id: 12, front: "Computadora", back: "Computer" },
-        ],
-      },
-      {
-        id: 2,
-        name: "History Facts",
-        cards: [
-          {
-            id: 1,
-            front: "Who was the first president?",
-            back: "George Washington",
-          },
-          { id: 2, front: "When did WWII end?", back: "1945" },
-          { id: 3, front: "Capital of France", back: "Paris" },
-          { id: 4, front: "Who wrote Hamlet?", back: "William Shakespeare" },
-          { id: 5, front: "Year of moon landing", back: "1969" },
-          { id: 6, front: "First emperor of Rome", back: "Augustus" },
-          { id: 7, front: "What year was the wheel invented?", back: "3500 BC" },
-          { id: 8, front: "Author of 1984", back: "George Orwell" },
-        ],
-      },
-      {
-        id: 3,
-        name: "Biology Concepts",
-        cards: [
-          {
-            id: 1,
-            front: "What is photosynthesis?",
-            back: "Process plants use to convert light into energy",
-          },
-          {
-            id: 2,
-            front: "What is mitochondria?",
-            back: "Powerhouse of the cell",
-          },
-          { id: 3, front: "What are proteins?", back: "Building blocks of life" },
-          {
-            id: 4,
-            front: "What is DNA?",
-            back: "Molecule carrying genetic instructions",
-          },
-          { id: 5, front: "Define osmosis", back: "Movement of water across membrane" },
-          { id: 6, front: "What is ATP?", back: "Energy currency of the cell" },
-          { id: 7, front: "What is enzyme?", back: "Protein that speeds up reactions" },
-          {
-            id: 8,
-            front: "What is homeostasis?",
-            back: "Maintaining stable internal conditions",
-          },
-          { id: 9, front: "Define photosynthesis equation", back: "6CO2 + 6H2O → C6H12O6 + 6O2" },
-          { id: 10, front: "What is chlorophyll?", back: "Green pigment in plants" },
-          { id: 11, front: "What is respiration?", back: "Process to release energy from glucose" },
-          {
-            id: 12,
-            front: "What are chromosomes?",
-            back: "Structures containing DNA",
-          },
-          { id: 13, front: "Define evolution", back: "Change in organisms over time" },
-          { id: 14, front: "What is mutation?", back: "Change in DNA sequence" },
-          { id: 15, front: "What is adaptation?", back: "Trait helping survival" },
-        ],
-      },
-    ];
-
-    this.nextDeckId = 4;
-    this.editingDeckId = null;
-    this.deletingDeckId = null;
-
-    this.initializeEventListeners();
-    this.renderDeckList();
-    this.selectDeck(1);
+// Minimal flashcards interactions: flip, next, prev, decks
+const cards = [
+  {front: 'What is HTML?', back: 'A markup language for documents.'},
+  {front: 'What is CSS?', back: 'Style sheet language for UI.'},
+  {front: 'What is JS?', back: 'Programming language for the web.'}
+];
+let index = 0;
+let currentCards = [];
+const cardEl = document.getElementById('current-card');
+const frontEl = cardEl?.querySelector('.card-front');
+const backEl = cardEl?.querySelector('.card-back');
+const deckTitleEl = document.getElementById('deck-title');
+function renderCard(i){
+  if(!currentCards.length) {
+    if(frontEl) frontEl.textContent = 'No cards';
+    if(backEl) backEl.textContent = '';
+    return;
   }
-
-  initializeEventListeners() {
-    // New Deck button
-    document
-      .querySelector(".btn-header-new-deck")
-      .addEventListener("click", () => this.openNewDeckModal());
-
-    // Modal close buttons
-    document.querySelectorAll(".btn-close-modal").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.target.closest(".modal-overlay").classList.remove("active");
-      });
-    });
-
-    // New Deck form
-    document
-      .getElementById("newDeckForm")
-      .addEventListener("submit", (e) => this.handleNewDeckSubmit(e));
-
-    document
-      .querySelector("#newDeckModal .btn-cancel")
-      .addEventListener("click", () => {
-        document.getElementById("newDeckModal").classList.remove("active");
-      });
-
-    // Edit Deck form
-    document
-      .getElementById("editDeckForm")
-      .addEventListener("submit", (e) => this.handleEditDeckSubmit(e));
-
-    document
-      .querySelector("#editDeckModal .btn-cancel")
-      .addEventListener("click", () => {
-        document.getElementById("editDeckModal").classList.remove("active");
-      });
-
-    // Delete confirmation
-    document
-      .querySelector("#confirmDeleteModal .btn-cancel")
-      .addEventListener("click", () => {
-        document.getElementById("confirmDeleteModal").classList.remove("active");
-      });
-
-    document
-      .querySelector(".btn-delete-confirm")
-      .addEventListener("click", () => this.confirmDelete());
-
-    // Deck edit/delete buttons in header
-    document
-      .querySelector(".btn-edit-deck")
-      .addEventListener("click", () => this.openEditDeckModal(this.activeDeckId));
-
-    document
-      .querySelector(".btn-delete-deck")
-      .addEventListener("click", () =>
-        this.openDeleteConfirm(this.activeDeckId)
-      );
-
-    // Modal overlay click to close
-    document.querySelectorAll(".modal-overlay").forEach((overlay) => {
-      overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) {
-          overlay.classList.remove("active");
-        }
-      });
-    });
-
-    // Card navigation
-    document
-      .querySelector(".btn-prev")
-      .addEventListener("click", () => this.previousCard());
-    document
-      .querySelector(".btn-next")
-      .addEventListener("click", () => this.nextCard());
-    document
-      .querySelector(".btn-flip")
-      .addEventListener("click", () => this.flipCard());
-
-    // Card click to flip
-    document
-      .querySelector(".card")
-      .addEventListener("click", () => this.flipCard());
-
-    // Keyboard navigation
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowLeft") this.previousCard();
-      if (e.key === "ArrowRight") this.nextCard();
-      if (e.key === " ") {
-        e.preventDefault();
-        this.flipCard();
-      }
-    });
-  }
-
-  renderDeckList() {
-    const deckList = document.querySelector(".deck-list");
-    deckList.innerHTML = "";
-
-    this.decks.forEach((deck) => {
-      const li = document.createElement("li");
-      li.className = `deck-item ${deck.id === this.activeDeckId ? "active" : ""}`;
-
-      li.innerHTML = `
-        <div class="deck-item-content">
-          <a href="#" data-deck-id="${deck.id}" class="deck-link">${deck.name}</a>
-          <span class="card-badge">${deck.cards.length}</span>
-        </div>
-        <div class="deck-item-actions">
-          <button class="btn-deck-menu" title="Deck options" aria-label="Deck options">⋮</button>
-        </div>
-      `;
-
-      const deckLink = li.querySelector(".deck-link");
-      deckLink.addEventListener("click", (e) => {
-        e.preventDefault();
-        this.selectDeck(deck.id);
-      });
-
-      const menuBtn = li.querySelector(".btn-deck-menu");
-      menuBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        this.openDeckMenu(e, deck.id);
-      });
-
-      deckList.appendChild(li);
-    });
-
-    this.updateDeckCount();
-  }
-
-  updateDeckCount() {
-    document.querySelector(".deck-count").textContent = this.decks.length;
-  }
-
-  selectDeck(deckId) {
-    const deck = this.decks.find((d) => d.id === deckId);
-    if (!deck) return;
-
-    this.activeDeckId = deckId;
-    this.currentCardIndex = 0;
-
-    // Update active state
-    document.querySelectorAll(".deck-item").forEach((item) => {
-      item.classList.remove("active");
-    });
-    document
-      .querySelector(`.deck-item [data-deck-id="${deckId}"]`)
-      .closest(".deck-item")
-      .classList.add("active");
-
-    // Update main content
-    document.getElementById("deck-title").textContent = deck.name;
-    document.querySelector(".deck-stats").textContent = `${deck.cards.length} cards`;
-    document.querySelector(".total-cards").textContent = deck.cards.length;
-
-    this.renderCard();
-  }
-
-  renderCard() {
-    const deck = this.decks.find((d) => d.id === this.activeDeckId);
-    if (!deck || deck.cards.length === 0) return;
-
-    const card = deck.cards[this.currentCardIndex];
-    document.querySelector(".card-front p").textContent = card.front;
-    document.querySelector(".card-back p").textContent = card.back;
-    document.querySelector(".current-card").textContent =
-      this.currentCardIndex + 1;
-    document.querySelector(".card-count").textContent = this.currentCardIndex + 1;
-
-    const progress = ((this.currentCardIndex + 1) / deck.cards.length) * 100;
-    document.querySelector(".progress-fill").style.width = progress + "%";
-
-    this.resetCardFlip();
-  }
-
-  nextCard() {
-    const deck = this.decks.find((d) => d.id === this.activeDeckId);
-    if (this.currentCardIndex < deck.cards.length - 1) {
-      this.currentCardIndex++;
-      this.renderCard();
-    }
-  }
-
-  previousCard() {
-    if (this.currentCardIndex > 0) {
-      this.currentCardIndex--;
-      this.renderCard();
-    }
-  }
-
-  flipCard() {
-    const cardInner = document.querySelector(".card-inner");
-    const isFlipped =
-      cardInner.style.transform === "rotateY(180deg)" ||
-      cardInner.style.transform === "";
-    cardInner.style.transform = isFlipped
-      ? "rotateY(180deg)"
-      : "rotateY(0deg)";
-  }
-
-  resetCardFlip() {
-    document.querySelector(".card-inner").style.transform = "rotateY(0deg)";
-  }
-
-  openNewDeckModal() {
-    document.getElementById("newDeckForm").reset();
-    document.getElementById("newDeckModal").classList.add("active");
-    document.getElementById("deckNameInput").focus();
-  }
-
-  handleNewDeckSubmit(e) {
-    e.preventDefault();
-    const name = document.getElementById("deckNameInput").value.trim();
-
-    if (name) {
-      const newDeck = {
-        id: this.nextDeckId++,
-        name: name,
-        cards: [],
-      };
-
-      this.decks.push(newDeck);
-      this.renderDeckList();
-      this.selectDeck(newDeck.id);
-      document.getElementById("newDeckModal").classList.remove("active");
-    }
-  }
-
-  openEditDeckModal(deckId) {
-    const deck = this.decks.find((d) => d.id === deckId);
-    if (!deck) return;
-
-    this.editingDeckId = deckId;
-    document.getElementById("editDeckNameInput").value = deck.name;
-    document.getElementById("editDeckModal").classList.add("active");
-    document.getElementById("editDeckNameInput").focus();
-  }
-
-  handleEditDeckSubmit(e) {
-    e.preventDefault();
-    const newName = document.getElementById("editDeckNameInput").value.trim();
-
-    if (newName && this.editingDeckId) {
-      const deck = this.decks.find((d) => d.id === this.editingDeckId);
-      if (deck) {
-        deck.name = newName;
-        this.renderDeckList();
-        if (this.activeDeckId === this.editingDeckId) {
-          document.getElementById("deck-title").textContent = newName;
-        }
-        document.getElementById("editDeckModal").classList.remove("active");
-      }
-    }
-  }
-
-  openDeleteConfirm(deckId) {
-    const deck = this.decks.find((d) => d.id === deckId);
-    if (!deck) return;
-
-    this.deletingDeckId = deckId;
-    document.getElementById("deleteConfirmMessage").textContent =
-      `Are you sure you want to delete "${deck.name}"? This action cannot be undone.`;
-    document.getElementById("confirmDeleteModal").classList.add("active");
-  }
-
-  confirmDelete() {
-    if (this.deletingDeckId) {
-      this.decks = this.decks.filter((d) => d.id !== this.deletingDeckId);
-
-      if (this.activeDeckId === this.deletingDeckId) {
-        const firstDeck = this.decks[0];
-        this.selectDeck(firstDeck ? firstDeck.id : null);
-      }
-
-      this.renderDeckList();
-      document.getElementById("confirmDeleteModal").classList.remove("active");
-    }
-  }
-
-  openDeckMenu(event, deckId) {
-    const dropdown = document.getElementById("deckMenuDropdown");
-    const rect = event.target.getBoundingClientRect();
-
-    dropdown.style.top = rect.bottom + "px";
-    dropdown.style.left = rect.left - 100 + "px";
-    dropdown.classList.add("active");
-
-    // Store current deck ID for menu actions
-    dropdown.dataset.deckId = deckId;
-
-    document.getElementById("editDeckOption").onclick = () => {
-      this.openEditDeckModal(deckId);
-      dropdown.classList.remove("active");
-    };
-
-    document.getElementById("deleteDeckOption").onclick = () => {
-      this.openDeleteConfirm(deckId);
-      dropdown.classList.remove("active");
-    };
+  if(i < 0) i = 0;
+  if(i >= currentCards.length) i = 0;
+  index = i;
+  const c = currentCards[i];
+  if(frontEl) frontEl.textContent = c.front;
+  if(backEl) backEl.textContent = c.back;
+  cardEl?.classList.remove('is-flipped','flipped');
+}
+function shuffleArray(arr){
+  for(let i = arr.length -1; i>0; i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
-
-// Initialize app
-document.addEventListener("DOMContentLoaded", () => {
-  new FlashcardsApp();
-
-  // Close deck menu when clicking outside
-  document.addEventListener("click", () => {
-    const dropdown = document.getElementById("deckMenuDropdown");
-    if (dropdown) {
-      dropdown.classList.remove("active");
+document.addEventListener('DOMContentLoaded', ()=>{
+  renderCard(index);
+  const deckList = document.querySelector('.deck-list');
+  const cardListEl = document.getElementById('card-list');
+  // Decks data model with meaningful content
+  let deckCounter = 1;
+  let decks = [
+    {
+      id: `deck-${deckCounter++}`,
+      name: 'JavaScript Basics',
+      cards: [
+        {front: 'What is a closure in JavaScript?', back: 'A closure is a function that retains access to its lexical scope even when executed outside that scope.'},
+        {front: 'Difference between var, let, and const?', back: '`var` is function-scoped, `let` and `const` are block-scoped; `const` creates read-only bindings.'},
+        {front: 'What is event delegation?', back: 'A pattern where a single handler on a parent handles events for multiple child elements.'},
+        {front: 'What does `this` refer to in a function?', back: 'Depends on how the function is called: method -> object; standalone -> global/undefined; arrow -> lexical `this`.'},
+        {front: 'Explain promises.', back: 'Promises represent the eventual completion or failure of an async operation and allow chaining via `then`/`catch`.'},
+        {front: 'What is async/await?', back: 'Syntax sugar over promises that lets you write asynchronous code that looks synchronous.'},
+        {front: 'What is the DOM?', back: 'The Document Object Model, an interface representing HTML elements as nodes and objects.'},
+        {front: 'What is hoisting?', back: 'JavaScript behavior where declarations are moved to the top of their scope during compilation.'},
+        {front: 'Difference between == and ===', back: '`==` performs type coercion, `===` checks strict equality without coercion.'},
+        {front: 'What is a prototype?', back: 'An object from which other objects inherit properties; used for prototypal inheritance.'}
+      ]
+    },
+    {
+      id: `deck-${deckCounter++}`,
+      name: 'HTML & CSS Fundamentals',
+      cards: [
+        {front: 'What does HTML stand for?', back: 'HyperText Markup Language.'},
+        {front: 'What is semantic HTML?', back: 'Using elements that convey meaning (e.g., `<header>`, `<nav>`, `<article>`) for accessibility and SEO.'},
+        {front: 'What is the CSS box model?', back: 'Content, padding, border, and margin define the space an element occupies.'},
+        {front: 'What is Flexbox used for?', back: 'A layout module for arranging items in a one-dimensional row or column with flexible sizing.'},
+        {front: 'What is responsive design?', back: 'Techniques (media queries, fluid layouts) to make sites usable across device sizes.'},
+        {front: 'Purpose of `alt` attribute on images?', back: 'Provides alternative text for accessibility and when images fail to load.'},
+        {front: 'What is CSS specificity?', back: 'Rules used to determine which CSS selector wins when multiple apply to the same element.'},
+        {front: 'How to include external CSS?', back: 'Using `<link rel="stylesheet" href="style.css">` in the document head.'},
+        {front: 'What is a CSS preprocessor?', back: 'Tools like Sass or Less that add features (variables, nesting) to CSS before compiling.'},
+        {front: 'What is accessibility (a11y)?', back: 'Designing web content so people with disabilities can perceive, navigate, and interact with it.'}
+      ]
+    },
+    {
+      id: `deck-${deckCounter++}`,
+      name: 'Computer Networking Basics',
+      cards: [
+        {front: 'What is an IP address?', back: 'A numeric label assigned to devices on a network, e.g., IPv4 (192.0.2.1).'},
+        {front: 'Difference between TCP and UDP?', back: 'TCP is connection-oriented and reliable; UDP is connectionless and faster but unreliable.'},
+        {front: 'What is DNS?', back: 'Domain Name System translates human-readable domain names into IP addresses.'},
+        {front: 'What is HTTP?', back: 'HyperText Transfer Protocol, the foundation of data communication for the web.'},
+        {front: 'What is HTTPS?', back: 'HTTP over TLS/SSL, encrypts data between client and server.'},
+        {front: 'What is a router?', back: 'A network device that forwards packets between different networks.'},
+        {front: 'What is a subnet?', back: 'A segmented piece of a larger network, defined by a network prefix.'},
+        {front: 'What is latency?', back: 'The time it takes for data to travel from source to destination.'},
+        {front: 'What is bandwidth?', back: 'The data transfer capacity of a network connection, typically in Mbps or Gbps.'},
+        {front: 'What is NAT?', back: 'Network Address Translation maps private IP addresses to a public IP for internet access.'}
+      ]
+    }
+  ];
+  let activeDeckId = decks[0].id;
+  // Persistence: save/load decks + active deck to localStorage
+  function saveState(){
+    try{
+      const state = { deckCounter, decks, activeDeckId };
+      localStorage.setItem('flashcards_state', JSON.stringify(state));
+    }catch(e){ /* ignore */ }
+  }
+  function loadState(){
+    try{
+      const raw = localStorage.getItem('flashcards_state');
+      if(!raw) return;
+      const parsed = JSON.parse(raw);
+      if(parsed && Array.isArray(parsed.decks)){
+        decks = parsed.decks;
+        // restore deckCounter (or compute from ids)
+        if(parsed.deckCounter) deckCounter = parsed.deckCounter;
+        else {
+          let max = 0;
+          decks.forEach(d=>{ const m = String(d.id).match(/-(\d+)$/); if(m) max = Math.max(max, Number(m[1])); });
+          deckCounter = Math.max(deckCounter, max + 1);
+        }
+        if(parsed.activeDeckId) activeDeckId = parsed.activeDeckId;
+      }
+    }catch(e){ /* ignore malformed state */ }
+  }
+  loadState();
+  // Randomize-on-select state persisted per session
+  let randomizeOnSelect = sessionStorage.getItem('randomize') === '1';
+  const randomizeBtn = document.querySelector('.randomize');
+  if(randomizeBtn){
+    randomizeBtn.setAttribute('aria-pressed', randomizeOnSelect ? 'true' : 'false');
+    randomizeBtn.addEventListener('click', ()=>{
+      randomizeOnSelect = !randomizeOnSelect;
+      randomizeBtn.setAttribute('aria-pressed', randomizeOnSelect ? 'true' : 'false');
+      sessionStorage.setItem('randomize', randomizeOnSelect ? '1' : '0');
+      // apply immediately to current deck if any
+      const deck = decks.find(d=>d.id === activeDeckId);
+      if(deck){
+        if(randomizeOnSelect){
+          currentCards = deck.cards.slice();
+          shuffleArray(currentCards);
+        } else {
+          currentCards = deck.cards.slice();
+        }
+        index = 0;
+        renderCard(index);
+        renderCardList();
+      }
+      if(liveEl) liveEl.textContent = `Randomize ${randomizeOnSelect ? 'enabled' : 'disabled'} for this session.`;
+    });
+  }
+  function renderDeckList(){
+    if(!deckList) return;
+    deckList.innerHTML = '';
+    decks.forEach(d => {
+      const li = document.createElement('li');
+      li.className = 'deck';
+      li.textContent = d.name;
+      li.dataset.id = d.id;
+      li.tabIndex = 0;
+      li.setAttribute('role','button');
+      if(d.id === activeDeckId) li.classList.add('active');
+      deckList.appendChild(li);
+    });
+    attachDeckHandlers();
+  }
+  function attachDeckHandlers(){
+    document.querySelectorAll('.deck').forEach(d => {
+      d.addEventListener('click', ()=> selectDeck(d.dataset.id));
+      d.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); selectDeck(d.dataset.id); } });
+    });
+  }
+  function selectDeck(id){
+    const deck = decks.find(x=>x.id === id);
+    if(!deck) return;
+    activeDeckId = id;
+    document.querySelectorAll('.deck').forEach(x=>x.classList.remove('active'));
+    const el = document.querySelector(`.deck[data-id="${id}"]`);
+    el?.classList.add('active');
+    currentCards = deck.cards.slice();
+    if(randomizeOnSelect) shuffleArray(currentCards);
+    if(deckTitleEl) deckTitleEl.textContent = deck.name;
+    index = 0;
+    renderCard(0);
+    renderCardList();
+    // persist last active deck
+    saveState();
+  }
+  renderDeckList();
+  selectDeck(activeDeckId);
+  const liveEl = document.getElementById('a11y-live');
+  // render initial card list for active deck
+  renderCardList();
+  // Modal-based create deck (header button)
+  const deckModal = document.getElementById('deck-modal');
+  const deckForm = document.getElementById('deck-form');
+  const deckNameInput = document.getElementById('deck-name');
+  const headerAdd = document.querySelector('.header-add-deck');
+  // Accessible modal: focus trap, ESC to close, restore focus to opener
+  let editDeckId = null;
+  let lastFocused = null;
+  const FOCUSABLE = 'a[href], area[href], input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  let onKeydown;
+  function trapFocus(modal){
+    const nodes = Array.from(modal.querySelectorAll(FOCUSABLE)).filter(n => n.offsetWidth || n.offsetHeight || n.getClientRects().length);
+    const first = nodes[0];
+    const last = nodes[nodes.length-1];
+    onKeydown = (e)=>{
+      if(e.key === 'Escape') { e.preventDefault(); closeDeckModal(); return; }
+      if(e.key === 'Tab'){
+        if(nodes.length === 0) { e.preventDefault(); return; }
+        if(e.shiftKey){ if(document.activeElement === first){ e.preventDefault(); last.focus(); } }
+        else { if(document.activeElement === last){ e.preventDefault(); first.focus(); } }
+      }
+    };
+    document.addEventListener('keydown', onKeydown);
+    // focus first focusable element
+    setTimeout(()=> (first || modal).focus(), 10);
+  }
+  function releaseFocus(){ if(onKeydown) document.removeEventListener('keydown', onKeydown); onKeydown = null; }
+  function openDeckModal(name = '', opener = null){
+    if(!deckModal) return;
+    lastFocused = opener || document.activeElement;
+    editDeckId = null;
+    deckNameInput.value = name;
+    deckModal.hidden = false;
+    deckModal.removeAttribute('aria-hidden');
+    trapFocus(deckModal);
+  }
+  function openDeckModalForEdit(id){
+    const deck = decks.find(d=>d.id === id);
+    if(!deck) return;
+    editDeckId = id;
+    openDeckModal(deck.name, document.querySelector('.edit-deck'));
+  }
+  function closeDeckModal(){
+    if(!deckModal) return;
+    deckModal.hidden = true;
+    deckModal.setAttribute('aria-hidden','true');
+    deckForm?.reset();
+    releaseFocus();
+    // restore focus to opener
+    try{ if(lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus(); }catch(e){}
+    lastFocused = null;
+    editDeckId = null;
+  }
+  // open create modal from header button
+  headerAdd?.addEventListener('click', (e)=> openDeckModal('', e.currentTarget));
+  // overlay click closes modal when clicking outside dialog
+  deckModal?.addEventListener('click', (e)=>{ if(e.target === deckModal) closeDeckModal(); });
+  deckModal?.querySelector('.cancel')?.addEventListener('click', closeDeckModal);
+  deckForm?.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const name = (deckNameInput?.value || '').trim();
+    if(!name){ deckNameInput?.focus(); return; }
+    if(editDeckId){
+      const deck = decks.find(d=>d.id === editDeckId);
+      if(deck) deck.name = name;
+      renderDeckList();
+      selectDeck(editDeckId);
+      // focus edited deck element
+      const el = document.querySelector(`.deck[data-id="${editDeckId}"]`);
+      el?.focus();
+      if(liveEl) liveEl.textContent = `Deck \u201C${name}\u201D updated.`;
+      saveState();
+    } else {
+      const id = `deck-${deckCounter++}`;
+      const deck = {id, name, cards: []};
+      decks.push(deck);
+      renderDeckList();
+      selectDeck(id);
+      const el = document.querySelector(`.deck[data-id="${id}"]`);
+      el?.focus();
+      if(liveEl) liveEl.textContent = `Deck \u201C${name}\u201D created.`;
+      saveState();
+    }
+    closeDeckModal();
+  });
+  // New card handler
+  // Card modal & handlers
+  const cardModal = document.getElementById('card-modal');
+  const cardForm = document.getElementById('card-form');
+  const cardFront = document.getElementById('card-front');
+  const cardBack = document.getElementById('card-back');
+  let editCardIndex = null;
+  function renderCardList(){
+    if(!cardListEl) return;
+    cardListEl.innerHTML = '';
+    const deck = decks.find(d=>d.id === activeDeckId);
+    if(!deck || !deck.cards) return;
+    deck.cards.forEach((c,i)=>{
+      const li = document.createElement('li');
+      const txt = document.createElement('div'); txt.className = 'card-text'; txt.textContent = c.front;
+      const actions = document.createElement('div'); actions.className = 'card-actions';
+      const editBtn = document.createElement('button'); editBtn.className = 'small-btn edit'; editBtn.textContent = 'Edit';
+      const delBtn = document.createElement('button'); delBtn.className = 'small-btn delete'; delBtn.textContent = 'Delete';
+      // buttons use delegated handlers attached below
+      actions.appendChild(editBtn); actions.appendChild(delBtn);
+      li.appendChild(txt); li.appendChild(actions);
+      li.dataset.index = i;
+      cardListEl.appendChild(li);
+    });
+  }
+  // delegated handler for card list actions (edit/delete)
+  cardListEl?.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const li = btn.closest('li');
+    if(!li) return;
+    const idx = Number(li.dataset.index);
+    const deck = decks.find(d=>d.id === activeDeckId);
+    if(!deck) return;
+    if(btn.classList.contains('edit')){
+      openCardModal(idx, btn);
+    } else if(btn.classList.contains('delete')){
+      const ok = confirm('Delete this card?'); if(!ok) return;
+      deck.cards.splice(idx,1);
+      currentCards = deck.cards.slice();
+      if(idx <= index) index = Math.max(0, index - 1);
+      renderCardList(); renderCard(index);
+      if(liveEl) liveEl.textContent = `Card ${idx+1} deleted.`;
+      saveState();
     }
   });
+  function openCardModal(i = null, opener = null){
+    if(!cardModal) return;
+    lastFocused = opener || document.activeElement;
+    editCardIndex = (i !== null && i !== undefined) ? i : null;
+    if(editCardIndex !== null){
+      const deck = decks.find(d=>d.id === activeDeckId);
+      const c = deck?.cards[editCardIndex];
+      cardFront.value = c?.front || '';
+      cardBack.value = c?.back || '';
+      cardModal.querySelector('#card-modal-title').textContent = 'Edit card';
+    } else {
+      cardFront.value = '';
+      cardBack.value = '';
+      cardModal.querySelector('#card-modal-title').textContent = 'Create card';
+    }
+    cardModal.hidden = false; cardModal.removeAttribute('aria-hidden');
+    trapFocus(cardModal);
+  }
+  function closeCardModal(){
+    if(!cardModal) return;
+    cardModal.hidden = true; cardModal.setAttribute('aria-hidden','true');
+    cardForm?.reset(); releaseFocus();
+    try{ if(lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus(); }catch(e){}
+    lastFocused = null; editCardIndex = null;
+  }
+  document.querySelector('.new-card')?.addEventListener('click', (e)=>{ openCardModal(null, e.currentTarget); });
+  cardModal?.addEventListener('click', (e)=>{ if(e.target === cardModal) closeCardModal(); });
+  cardModal?.querySelector('.cancel')?.addEventListener('click', closeCardModal);
+  cardForm?.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const front = (cardFront?.value || '').trim();
+    const back = (cardBack?.value || '').trim();
+    if(!front) { cardFront.focus(); return; }
+    const deck = decks.find(d=>d.id === activeDeckId);
+    if(!deck){ alert('Please select a deck first.'); closeCardModal(); return; }
+    if(editCardIndex !== null){
+      deck.cards[editCardIndex] = {front, back};
+      currentCards = deck.cards.slice();
+      renderCardList(); renderCard(editCardIndex);
+      if(liveEl) liveEl.textContent = `Card updated.`;
+      saveState();
+    } else {
+      deck.cards.push({front, back});
+      currentCards = deck.cards.slice();
+      renderCardList();
+      index = currentCards.length - 1; renderCard(index);
+      if(liveEl) liveEl.textContent = `Card created.`;
+      saveState();
+    }
+    closeCardModal();
+  });
+  // Edit / Delete deck buttons
+  document.querySelector('.edit-deck')?.addEventListener('click', ()=>{
+    const active = decks.find(d=>d.id === activeDeckId);
+    if(!active) return;
+    editDeckId = active.id;
+    openDeckModal(active.name);
+  });
+  document.querySelector('.delete-deck')?.addEventListener('click', ()=>{
+    const activeIndex = decks.findIndex(d=>d.id === activeDeckId);
+    if(activeIndex === -1) return;
+    const name = decks[activeIndex].name;
+    const ok = confirm(`Delete deck "${name}"? This cannot be undone.`);
+    if(!ok) return;
+    decks.splice(activeIndex,1);
+    // remove from DOM and re-render
+    renderDeckList();
+    if(decks.length) selectDeck(decks[0].id);
+    else {
+      // no decks left
+      activeDeckId = null;
+      currentCards = [];
+      if(deckTitleEl) deckTitleEl.textContent = '';
+      renderCard(0);
+    }
+    saveState();
+    if(liveEl) liveEl.textContent = `Deck \u201C${name}\u201D deleted.`;
+  });
+  // Shuffle handler
+  document.querySelector('.shuffle')?.addEventListener('click', ()=>{
+    shuffleArray(currentCards);
+    index = 0;
+    renderCard(index);
+  });
+  // Search handler - jump to first matching card
+  document.querySelector('.search-input')?.addEventListener('input', (e)=>{
+    const q = (e.target.value || '').toLowerCase().trim();
+    const deck = decks.find(d=>d.id === activeDeckId);
+    if(!q){ renderCard(0); return; }
+    if(!deck || !deck.cards) return;
+    // search the original deck cards (case-insensitive)
+    const foundInDeck = deck.cards.findIndex(c => (c.front + ' ' + c.back).toLowerCase().includes(q));
+    if(foundInDeck === -1) return;
+    // map that card to currentCards order (which may be shuffled)
+    const target = deck.cards[foundInDeck];
+    const foundInCurrent = currentCards.findIndex(c => c.front === target.front && c.back === target.back);
+    if(foundInCurrent >= 0) renderCard(foundInCurrent);
+  });
+  document.querySelector('.flip')?.addEventListener('click', ()=>{
+    cardEl?.classList.toggle('is-flipped');
+  });
+  document.querySelector('.next')?.addEventListener('click', ()=>{
+    if(!currentCards.length) return;
+    index = (index + 1) % currentCards.length; renderCard(index);
+  });
+  document.querySelector('.prev')?.addEventListener('click', ()=>{
+    if(!currentCards.length) return;
+    index = (index - 1 + currentCards.length) % currentCards.length; renderCard(index);
+  });
+  // Study mode: scoped keyboard shortcuts and lifecycle
+  let studyKeyHandler = null;
+  function enterStudyMode(deckId){
+    const deck = decks.find(d=>d.id === deckId);
+    if(!deck) return;
+    activeDeckId = deckId;
+    // initialize cards (honoring randomize setting)
+    currentCards = deck.cards.slice();
+    if(randomizeOnSelect) shuffleArray(currentCards);
+    index = 0;
+    renderDeckList();
+    const el = document.querySelector(`.deck[data-id="${deckId}"]`);
+    el?.classList.add('active');
+    if(deckTitleEl) deckTitleEl.textContent = deck.name;
+    renderCard(0);
+    renderCardList();
+    studyKeyHandler = (e)=>{
+      const active = document.activeElement;
+      const isTyping = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
+      if(isTyping) return;
+      if((deckModal && !deckModal.hidden) || (cardModal && !cardModal.hidden)) return;
+      if(e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar'){
+        e.preventDefault(); document.querySelector('.flip')?.click();
+      } else if(e.key === 'ArrowRight'){
+        document.querySelector('.next')?.click();
+      } else if(e.key === 'ArrowLeft'){
+        document.querySelector('.prev')?.click();
+      } else if(e.key === 'Escape'){
+        exitStudyMode();
+      }
+    };
+    document.addEventListener('keydown', studyKeyHandler);
+  }
+  function exitStudyMode(){
+    if(studyKeyHandler){ document.removeEventListener('keydown', studyKeyHandler); studyKeyHandler = null; }
+    // reset flip state and show current index (keeps deck selection)
+    cardEl?.classList.remove('is-flipped','flipped');
+    renderCard(index);
+  }
+  // expose for manual control/testing
+  window.enterStudyMode = enterStudyMode;
+  window.exitStudyMode = exitStudyMode;
 });

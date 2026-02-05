@@ -1,249 +1,98 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Flashcards App</title>
-    <link rel="stylesheet" href="./styles.css" />
-    <script src="./app.js" defer></script>
-  </head>
-  <body>
-    <!-- Header -->
-    <header>
-      <div class="header-content">
-        <h1>📚 Flashcards</h1>
-        <button class="btn-header-new-deck" title="Create a new deck">
-          + New Deck
-        </button>
-      </div>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-inner">
+            <h1>Flashcards</h1>
+            <button class="add-deck header-add-deck">+ New Deck</button>
+            <!-- navigation removed to simplify header -->
+        </div>
     </header>
-
-    <!-- Main Container -->
-    <div class="container">
-      <!-- Sidebar -->
-      <aside class="sidebar">
-        <div class="sidebar-header">
-          <h2>Decks</h2>
-          <span class="deck-count">3</span>
-        </div>
-        <ul class="deck-list">
-          <li class="deck-item active">
-            <div class="deck-item-content">
-              <a href="#" data-deck-id="1" class="deck-link"
-                >Spanish Vocabulary</a
-              >
-              <span class="card-badge">12</span>
-            </div>
-            <div class="deck-item-actions">
-              <button class="btn-deck-menu" title="Deck options" aria-label="Deck options">⋮</button>
-            </div>
-          </li>
-          <li class="deck-item">
-            <div class="deck-item-content">
-              <a href="#" data-deck-id="2" class="deck-link">History Facts</a>
-              <span class="card-badge">8</span>
-            </div>
-            <div class="deck-item-actions">
-              <button class="btn-deck-menu" title="Deck options" aria-label="Deck options">⋮</button>
-            </div>
-          </li>
-          <li class="deck-item">
-            <div class="deck-item-content">
-              <a href="#" data-deck-id="3" class="deck-link">Biology Concepts</a>
-              <span class="card-badge">15</span>
-            </div>
-            <div class="deck-item-actions">
-              <button class="btn-deck-menu" title="Deck options" aria-label="Deck options">⋮</button>
-            </div>
-          </li>
-        </ul>
-      </aside>
-
-      <!-- Main Content Area -->
-      <main class="main-content">
-        <section class="deck-section">
-          <!-- Deck Header -->
-          <div class="deck-header">
-            <div class="deck-title-area">
-              <h2 id="deck-title">Spanish Vocabulary</h2>
-              <span class="deck-stats">12 cards</span>
-            </div>
-            <div class="deck-actions">
-              <button class="btn-edit-deck" title="Edit deck">✏️</button>
-              <button class="btn-delete-deck" title="Delete deck">🗑️</button>
-            </div>
-          </div>
-
-          <!-- Toolbar -->
-          <div class="toolbar">
-            <div class="search-container">
-              <input
-                type="text"
-                class="search-input"
-                placeholder="Search cards..."
-                aria-label="Search cards"
-              />
-              <span class="search-icon">🔍</span>
-            </div>
-            <div class="toolbar-actions">
-              <button class="btn-shuffle" title="Shuffle cards">
-                🔀 Shuffle
-              </button>
-              <button class="btn-new-card" title="Add new card">
-                + New Card
-              </button>
-            </div>
-          </div>
-
-          <!-- Card Area -->
-          <div class="card-area">
-            <div class="cards-container">
-              <!-- Flashcard -->
-              <div
-                class="card"
-                tabindex="0"
-                role="button"
-                aria-label="Flashcard"
-              >
-                <div class="card-inner">
-                  <div class="card-front">
-                    <p>Hola</p>
-                  </div>
-                  <div class="card-back">
-                    <p>Hello</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Side Info -->
-            <aside class="card-side-info">
-              <div class="info-item">
-                <span class="info-label">Current</span>
-                <span class="info-value card-count">1</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Total</span>
-                <span class="info-value">12</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Progress</span>
-                <div class="progress-bar">
-                  <div class="progress-fill" style="width: 8.33%"></div>
-                </div>
-              </div>
-            </aside>
-          </div>
-
-          <!-- Controls -->
-          <div class="controls">
-            <button class="btn-prev" title="Previous card">← Previous</button>
-            <button class="btn-flip" title="Flip card">🔄 Flip</button>
-            <span class="card-counter">
-              <span class="current-card">1</span> /
-              <span class="total-cards">12</span>
-            </span>
-            <button class="btn-next" title="Next card">Next →</button>
-          </div>
-        </section>
-      </main>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <h2>Decks</h2>
+            <ul class="deck-list">
+                <li class="deck" tabindex="0" role="button">Sample Deck 1</li>
+                <li class="deck" tabindex="0" role="button">Sample Deck 2</li>
+                <li class="deck" tabindex="0" role="button">Sample Deck 3</li>
+            </ul>
+        </aside>
+        <main class="main-content">
+            <section class="deck-main">
+                <header class="deck-header">
+                    <h2 id="deck-title">Sample Deck 1</h2>
+                    <div class="deck-toolbar">
+                        <input type="search" class="search-input" placeholder="Search cards..." aria-label="Search cards">
+                        <button type="button" class="randomize" aria-pressed="false">Randomize</button>
+                        <button type="button" class="shuffle">Shuffle</button>
+                        <button type="button" class="new-card">+ New Card</button>
+                        <button type="button" class="edit-deck">Edit Deck</button>
+                        <button type="button" class="delete-deck">Delete Deck</button>
+                    </div>
+                </header>
+                <section class="card-area">
+                    <div class="card" id="current-card">
+                        <div class="card-inner">
+                            <div class="card-face card-front">Front of card</div>
+                            <div class="card-face card-back">Back of card</div>
+                        </div>
+                        </div>
+                    <div class="card-controls">
+                        <button class="prev">Prev</button>
+                        <button class="flip">Flip</button>
+                        <button class="next">Next</button>
+                    </div>
+                </section>
+                <!-- Card list / preview -->
+                <section class="card-list-area">
+                    <h3 class="visually-hidden">Cards in deck</h3>
+                    <ul class="card-list" id="card-list"></ul>
+                </section>
+            </section>
+        </main>
     </div>
-
-    <!-- Footer -->
-    <footer>
-      <div class="footer-content">
-        <div class="footer-instructions">
-          <p>
-            💡 <strong>Tip:</strong> Click or press Space to flip cards. Use
-            arrow keys or buttons to navigate.
-          </p>
-        </div>
-        <div class="footer-credits">
-          <p>&copy; 2025 Flashcards App</p>
-        </div>
-      </div>
+    <footer class="app-footer">
+        <p class="instructions">Tip: Use <strong>Flip</strong> to reveal answers. Use <strong>New Deck</strong> or <strong>+ New Card</strong> to add content.</p>
     </footer>
-
-    <!-- New Deck Modal -->
-    <div class="modal-overlay" id="newDeckModal">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>Create New Deck</h3>
-          <button class="btn-close-modal" title="Close modal">&times;</button>
+    <!-- New Deck modal -->
+    <div id="deck-modal" class="modal-overlay" hidden aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="deck-modal-title">
+            <h3 id="deck-modal-title">Create new deck</h3>
+            <form id="deck-form">
+                <label for="deck-name">Deck name</label>
+                <input id="deck-name" name="name" type="text" maxlength="60" required placeholder="My new deck">
+                <div class="modal-actions">
+                    <button type="button" class="btn cancel">Cancel</button>
+                    <button type="submit" class="btn create">Create</button>
+                </div>
+            </form>
         </div>
-        <div class="modal-body">
-          <form id="newDeckForm">
-            <div class="form-group">
-              <label for="deckNameInput">Deck Name</label>
-              <input
-                type="text"
-                id="deckNameInput"
-                class="form-input"
-                placeholder="e.g., French Verbs"
-                required
-              />
-            </div>
-            <div class="form-actions">
-              <button type="button" class="btn-cancel">Cancel</button>
-              <button type="submit" class="btn-create">Create Deck</button>
-            </div>
-          </form>
-        </div>
-      </div>
     </div>
-
-    <!-- Edit Deck Modal -->
-    <div class="modal-overlay" id="editDeckModal">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>Edit Deck</h3>
-          <button class="btn-close-modal" title="Close modal">&times;</button>
+    <!-- Card modal -->
+    <div id="card-modal" class="modal-overlay" hidden aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="card-modal-title">
+            <h3 id="card-modal-title">Create card</h3>
+            <form id="card-form">
+                <label for="card-front">Front</label>
+                <input id="card-front" name="front" type="text" maxlength="250" required placeholder="Question or prompt">
+                <label for="card-back">Back</label>
+                <textarea id="card-back" name="back" rows="3" placeholder="Answer or details"></textarea>
+                <div class="modal-actions">
+                    <button type="button" class="btn cancel">Cancel</button>
+                    <button type="submit" class="btn create">Save</button>
+                </div>
+            </form>
         </div>
-        <div class="modal-body">
-          <form id="editDeckForm">
-            <div class="form-group">
-              <label for="editDeckNameInput">Deck Name</label>
-              <input
-                type="text"
-                id="editDeckNameInput"
-                class="form-input"
-                placeholder="e.g., French Verbs"
-                required
-              />
-            </div>
-            <div class="form-actions">
-              <button type="button" class="btn-cancel">Cancel</button>
-              <button type="submit" class="btn-save">Save Changes</button>
-            </div>
-          </form>
-        </div>
-      </div>
     </div>
-
-    <!-- Confirm Delete Modal -->
-    <div class="modal-overlay" id="confirmDeleteModal">
-      <div class="modal modal-danger">
-        <div class="modal-header">
-          <h3>Delete Deck?</h3>
-          <button class="btn-close-modal" title="Close modal">&times;</button>
-        </div>
-        <div class="modal-body">
-          <p id="deleteConfirmMessage">
-            Are you sure you want to delete this deck? This action cannot be
-            undone.
-          </p>
-          <div class="form-actions">
-            <button class="btn-cancel" id="cancelDelete">Cancel</button>
-            <button class="btn-delete-confirm">Delete Permanently</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Deck Menu Dropdown -->
-    <div class="deck-menu-dropdown" id="deckMenuDropdown">
-      <button class="deck-menu-item" id="editDeckOption">✏️ Edit</button>
-      <button class="deck-menu-item" id="deleteDeckOption">🗑️ Delete</button>
-    </div>
-  </body>
+    <!-- ARIA live region for announcements -->
+    <div id="a11y-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+    <script src="app.js"></script>
+</body>
 </html>
